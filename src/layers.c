@@ -190,7 +190,9 @@ flappie_matrix convolution(const_flappie_matrix X, const_flappie_matrix W,
     // Matrix strides
     const size_t ldC = C->stride;
     const size_t ldW = W->stride;
-    const size_t ldX = X->stride;
+    // FIX padding disable changes
+    //const size_t ldX = X->stride; 
+    const size_t ldX = 1;
     const size_t ldFeature = ldX;
 
     fprintf(stderr, "convolution xnr=%lu xnc=%lu wnr=%lu wnc=%lubnr=%lu bnc=%lu cnr=%lu cnc=%lu\n",X->nr, X->nc, W->nr, W->nc, b->nr, b->nc, C->nr, C->nc);

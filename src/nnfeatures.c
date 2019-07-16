@@ -24,6 +24,7 @@ flappie_matrix features_from_raw(const raw_table signal, int padding) {
     const size_t offset = signal.start;
     for (size_t i = 0 ; i < nsample ; i++) {
         // Copy with stride 4 because of required padding for matrix
+        // FIX padding disable changes
         //sigmat->data.f[i * 4] = signal.raw[i + offset];
         sigmat->data.f[i] = signal.raw[i + offset];
     }

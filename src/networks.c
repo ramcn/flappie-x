@@ -305,6 +305,7 @@ flappie_matrix flipflop_guppy_transitions(const raw_table signal, float temperat
     RETURN_NULL_IF(NULL == signal.raw, NULL);
     long useconds, seconds, mseconds;
 
+    // FIX padding disable changes
     //flappie_matrix raw_mat = features_from_raw(signal, 4);
     flappie_matrix raw_mat = features_from_raw(signal, 0);
 
