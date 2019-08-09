@@ -704,11 +704,27 @@ void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
     fprint_flappie_matrix("xF.txt", header , xF, xF->nr, xF->nc, false); */
     cblas_sgemv(CblasColMajor, CblasTrans, sW->nr, sW->nc, 1.0, sW->data.f,
                sW->stride, istate->data.f, 1, 1.0, xF->data.f, 1);
-    for (size_t i = 0; i < (sizeq+sizeq); i++) {
-        xF->data.v[i] = LOGISTICFV(xF->data.v[i]);
+    for (size_t i = 0; i < (size+size); i++) {
+        //xF->data.v[i] = LOGISTICFV(xF->data.v[i]);
+        xF->data.f[i] = LOGISTICF(xF->data.f[i]);
     }
 
-    const __m128 *z = xF->data.v;
+    const float *z = xF->data.f;
+    const float *r = xF->data.f + size;
+    float *hbar = xF->data.f + size + size;
+    for (size_t i = 0; i < size; i++) {
+        hbar[i] = r[i] * hbar[i] + x->data.f[size + size + i];
+    }
+    for (size_t i = 0; i < size; i++) {
+        hbar[i] = TANHF(hbar[i]);
+    }
+
+    const float ones = 1.0f;
+    for (size_t i = 0; i < size ; i++) {
+        ostate->data.f[i] = z[i] * istate->data.f[i] + (ones - z[i]) * hbar[i];
+    }
+
+    /*const __m128 *z = xF->data.v;
     const __m128 *r = xF->data.v + sizeq;
     __m128 *hbar = xF->data.v + sizeq + sizeq;
     for (size_t i = 0; i < sizeq; i++) {
@@ -721,7 +737,7 @@ void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
     const __m128 ones = _mm_set1_ps(1.0f);
     for (size_t i = 0; i < sizeq ; i++) {
         ostate->data.v[i] = z[i] * istate->data.v[i] + (ones - z[i]) * hbar[i];
-    }
+    }*/
 }
 
 
