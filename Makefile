@@ -28,6 +28,6 @@ clean:
 
 ${buildDir}/flappie: ${buildDir}
 	cd ${buildDir} && \
-	cmake .. -DCMAKE_C_FLAGS="-O0 -g -pg"  -DCMAKE_BUILD_TYPE=${releaseType} -DHDF5_ROOT=${hdf5Root} && \
+	cmake .. -DCMAKE_C_FLAGS="-g"  -DCMAKE_BUILD_TYPE=${releaseType} -DHDF5_ROOT=${hdf5Root} && \
 	make flappie
     

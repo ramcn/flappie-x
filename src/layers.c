@@ -24,7 +24,8 @@ void tanh_activation_inplace(flappie_matrix C) {
     for (size_t c = 0; c < C->nc; ++c) {
         const size_t offset = c * C->nrq;
         for (size_t r = 0; r < C->nrq; ++r) {
-            C->data.v[offset + r] = TANHFV(C->data.v[offset + r]);
+            //C->data.v[offset + r] = TANHFV(C->data.v[offset + r]);
+            C->data.f[offset + r] = TANHF(C->data.f[offset + r]);
         }
     }
     (void)validate_flappie_matrix(C, -1.0, 1.0, 0.0, true, __FILE__, __LINE__);
@@ -595,12 +596,12 @@ flappie_matrix grumod_forward(const_flappie_matrix X, const_flappie_matrix sW,
     xCol.nc = sCol1.nc = sCol2.nc = 1;
     sCol1.data.v = ostate->data.v + ostate->nrq;
     sCol2.data.v = ostate->data.v;
-    grumod_step(&xCol, &sCol1, sW, tmp, &sCol2);
+    grumod_step(&xCol, &sCol1, sW, tmp, &sCol2, 0);
     for (size_t i = 1; i < bsize; i++) {
         xCol.data.v = X->data.v + i * X->nrq;
         sCol1.data.v = ostate->data.v + (i - 1) * ostate->nrq;
         sCol2.data.v = ostate->data.v + i * ostate->nrq;
-        grumod_step(&xCol, &sCol1, sW, tmp, &sCol2);
+        grumod_step(&xCol, &sCol1, sW, tmp, &sCol2, i);
     }
 
     tmp = free_flappie_matrix(tmp);
@@ -610,6 +611,8 @@ flappie_matrix grumod_forward(const_flappie_matrix X, const_flappie_matrix sW,
     return ostate;
 }
 
+
+FILE *sWFP;
 
 flappie_matrix grumod_backward(const_flappie_matrix X, const_flappie_matrix sW,
                                 flappie_matrix ostate) {
@@ -642,13 +645,13 @@ flappie_matrix grumod_backward(const_flappie_matrix X, const_flappie_matrix sW,
     xCol.data.v = X->data.v + (X->nc - 1) * X->nrq;
     sCol1.data.v = ostate->data.v;
     sCol2.data.v = ostate->data.v + (ostate->nc - 1) * ostate->nrq;
-    grumod_step(&xCol, &sCol1, sW, tmp, &sCol2);
+    grumod_step(&xCol, &sCol1, sW, tmp, &sCol2, 0);
     for (size_t i = 1; i < bsize; i++) {
         const size_t index = bsize - i - 1;
         xCol.data.v = X->data.v + index * X->nrq;
         sCol1.data.v = ostate->data.v + (index + 1) * ostate->nrq;
         sCol2.data.v = ostate->data.v + index * ostate->nrq;
-        grumod_step(&xCol, &sCol1, sW, tmp, &sCol2);
+        grumod_step(&xCol, &sCol1, sW, tmp, &sCol2, i);
     }
 
     tmp = free_flappie_matrix(tmp);
@@ -661,7 +664,7 @@ flappie_matrix grumod_backward(const_flappie_matrix X, const_flappie_matrix sW,
 
 void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
                  const_flappie_matrix sW, flappie_matrix xF,
-                 flappie_matrix ostate) {
+                 flappie_matrix ostate, int iteration) {
     /* Perform a single modified GRU step
      * x      is [isize]
      * istate is [size]
@@ -683,6 +686,7 @@ void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
     assert(3 * size == xF->nr);
     assert(size == ostate->nr);
 
+    //char header[250];
 
 
     // Copy input vector = iW x + b to temporary vector and zero last chunk
@@ -692,9 +696,15 @@ void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
      *  then apply gate function to get r and z
      */
     //fprintf(stderr,"grumod_step: Number of M=%lu N=%lu\n",sW->nr,sW->nc);
+    /*sprintf(header, "Printing matrix sW of ROWS %lu and COLS %lu in Iteration %d", sW->nr, sW->nc, iteration); 
+    fprint_flappie_matrix("sW.txt", header , sW, sW->nr, sW->nc, false);
+    sprintf(header, "Printing matrix istate of ROWS %lu and COLS %lu in Iteration %d", istate->nr, istate->nc, iteration); 
+    fprint_flappie_matrix("istate.txt", header , istate, istate->nr, istate->nc, false);
+    sprintf(header, "Printing matrix xF of ROWS %lu and COLS %lu in Iteration %d", xF->nr, xF->nc, iteration); 
+    fprint_flappie_matrix("xF.txt", header , xF, xF->nr, xF->nc, false); */
     cblas_sgemv(CblasColMajor, CblasTrans, sW->nr, sW->nc, 1.0, sW->data.f,
                sW->stride, istate->data.f, 1, 1.0, xF->data.f, 1);
-    for (size_t i = 0; i < (sizeq + sizeq); i++) {
+    for (size_t i = 0; i < (sizeq+sizeq); i++) {
         xF->data.v[i] = LOGISTICFV(xF->data.v[i]);
     }
 

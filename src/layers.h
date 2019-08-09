@@ -62,7 +62,7 @@ flappie_matrix grumod_backward(const_flappie_matrix X, const_flappie_matrix sW,
                                 flappie_matrix res);
 void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
                  const_flappie_matrix sW, flappie_matrix xF,
-                 flappie_matrix ostate);
+                 flappie_matrix ostate, int iteration);
 
 flappie_matrix gru_relu_forward(const_flappie_matrix X, const_flappie_matrix sW,
                                 const_flappie_matrix sW2, flappie_matrix res);
