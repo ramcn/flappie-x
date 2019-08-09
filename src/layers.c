@@ -686,26 +686,15 @@ void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
     assert(3 * size == xF->nr);
     assert(size == ostate->nr);
 
-    //char header[250];
-
-
     // Copy input vector = iW x + b to temporary vector and zero last chunk
     memcpy(xF->data.v, x->data.v, x->nrq * sizeof(__m128));
     memset(xF->data.v + sizeq + sizeq, 0, sizeq *sizeof(__m128));
     /*  Add sW * istate to first 3 * size elts of xF
      *  then apply gate function to get r and z
      */
-    //fprintf(stderr,"grumod_step: Number of M=%lu N=%lu\n",sW->nr,sW->nc);
-    /*sprintf(header, "Printing matrix sW of ROWS %lu and COLS %lu in Iteration %d", sW->nr, sW->nc, iteration); 
-    fprint_flappie_matrix("sW.txt", header , sW, sW->nr, sW->nc, false);
-    sprintf(header, "Printing matrix istate of ROWS %lu and COLS %lu in Iteration %d", istate->nr, istate->nc, iteration); 
-    fprint_flappie_matrix("istate.txt", header , istate, istate->nr, istate->nc, false);
-    sprintf(header, "Printing matrix xF of ROWS %lu and COLS %lu in Iteration %d", xF->nr, xF->nc, iteration); 
-    fprint_flappie_matrix("xF.txt", header , xF, xF->nr, xF->nc, false); */
     cblas_sgemv(CblasColMajor, CblasTrans, sW->nr, sW->nc, 1.0, sW->data.f,
                sW->stride, istate->data.f, 1, 1.0, xF->data.f, 1);
     for (size_t i = 0; i < (size+size); i++) {
-        //xF->data.v[i] = LOGISTICFV(xF->data.v[i]);
         xF->data.f[i] = LOGISTICF(xF->data.f[i]);
     }
 
@@ -723,21 +712,6 @@ void grumod_step(const_flappie_matrix x, const_flappie_matrix istate,
     for (size_t i = 0; i < size ; i++) {
         ostate->data.f[i] = z[i] * istate->data.f[i] + (ones - z[i]) * hbar[i];
     }
-
-    /*const __m128 *z = xF->data.v;
-    const __m128 *r = xF->data.v + sizeq;
-    __m128 *hbar = xF->data.v + sizeq + sizeq;
-    for (size_t i = 0; i < sizeq; i++) {
-        hbar[i] = r[i] * hbar[i] + x->data.v[sizeq + sizeq + i];
-    }
-    for (size_t i = 0; i < sizeq; i++) {
-        hbar[i] = TANHFV(hbar[i]);
-    }
-
-    const __m128 ones = _mm_set1_ps(1.0f);
-    for (size_t i = 0; i < sizeq ; i++) {
-        ostate->data.v[i] = z[i] * istate->data.v[i] + (ones - z[i]) * hbar[i];
-    }*/
 }
 
 
